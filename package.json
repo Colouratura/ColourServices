@@ -1,0 +1,12 @@
+{
+  "name": "colour-services",
+  "version": "1.0.0",
+  "description": "A collection of services used and employed by Colouratura",
+  "author": "Colouratura",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2",
+    "forever": "^0.15.3",
+    "request": "^2.83.0"
+  }
+}

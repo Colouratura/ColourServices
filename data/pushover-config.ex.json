@@ -1,0 +1,8 @@
+{
+	"wiki": "creepypasta",
+	"interval": 30000,
+	"tokens": {
+		"user": "user key",
+		"app":  "app key"
+	}
+}

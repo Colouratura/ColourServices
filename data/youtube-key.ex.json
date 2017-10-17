@@ -1,0 +1,8 @@
+{
+	"key": "youtube api key here",
+	"port": 5253,
+	"reject": "Please do not make further requests to this server",
+	"trusted": [
+		"trusted ip here"
+	]
+}
