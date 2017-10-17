@@ -34,34 +34,12 @@ const DISCORD_WEBHOOK_TOKEN = CONFIG.webhook.token;
 const DISCORD_WEBHOOK_COMB  = `${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}`;
 const DISCORD_WEBHOOK_URL   = `https://discordapp.com/api/webhooks/${DISCORD_WEBHOOK_COMB}`;
 
-// Embed template
-const DISCORD_GITHUB_EMBED_TEXT = '{user} {verb} "{title}" - <{link}>';
-const DISCORD_GITHUB_EMBED = {
-	content: undefined,
-	tts:     false
-};
-
-/**
- * render_template
- * 
- * renders a template string with the pre-defined values
- * 
- * @param {string} template       - the template string to render
- * @param {object<key, val>} data - the template object to render from
- * 
- * @return {string}
- */
-const render_template = function (template, data) {
-	for (var key in data) {
-		template = template.replace(
-			new RegExp('\\{' + key + '\\}', 'g'),
-			(data[key] !== null)
-				? data[key]
-				: ''
-		);
-	}
-
-	return template;
+const DISCORD_EMBED_COLORS = {
+// Embed colors
+    merged:   0x6E5494,
+    opened:   0x116633,
+    reopened: 0x116633,
+    closed:   0x991111
 };
 
 /**
@@ -131,21 +109,35 @@ const save_last = async function (id, timestamp) {
  * 
  * @return {null}
  */
-const post_to_channel = function ({title, url, user, action}) {
-	let t_data = {
-		user:  user,
-		verb:  action,
-		title: title,
-		link:  url
-	},
-	r_template = render_template(DISCORD_GITHUB_EMBED_TEXT, t_data),
-	embed      = Object.assign({}, DISCORD_GITHUB_EMBED);
+const post_to_channel = function ({title, url, user, action, avatar, user_url, body, timestamp}) {
+    const color = DISCORD_EMBED_COLORS[action];
+    if (!color) {
+        // TODO: Support more events
+        return;
+    }
 
-	embed.content = r_template;
-	//embed = JSON.stringify(embed);
-
-	request.post(DISCORD_WEBHOOK_URL, (err, res, body) => {})
-	       .form(embed);
+	request.post({
+        headers: {
+            'User-Agent': USER_AGENT,
+            'Content-Type': 'application/json'
+        },
+        uri: DISCORD_WEBHOOK_URL,
+        body: {
+            embeds: [{
+                title: title,
+                url: url,
+                color: color,
+                timestamp: timestamp.toISOString(),
+                description: action === 'opened' ? body : null,
+                author: {
+                    name: user,
+                    url: user_url,
+                    icon_url: avatar
+                }
+            }]
+        },
+        json: true
+    }, (err, res, body) => { });
 };
 
 /**
@@ -173,22 +165,21 @@ const post_actions = function (actions) {
 const fetch_actions = async function () {
 	return new Promise(function (resolve, reject) {
 		let options = {
-			url: WIKIA_REPO + `?cb=${new Date().getTime()}`,
+			uri: WIKIA_REPO,
 			headers: {
 				'User-Agent': USER_AGENT
-			}
+			},
+            qs: {
+                cb: new Date().getTime()
+            },
+            json: true
 		};
 
 		request.get(options, function (err, res, body) {
 			if (err) reject(err);
+            if (!body) reject(new Error('No data'));
 
-			try {
-				let data = JSON.parse(body);
-
-				resolve(data);
-			} catch (e) {
-				reject(e);
-			}
+            resolve(body);
 		});
 	});
 };
@@ -204,14 +195,25 @@ const filter_actions = function (actions) {
 	let n_actions = [];
 
 	for (let i = 0; i < actions.length; i++) {
-		if (actions[i].type === 'PullRequestEvent') {
+        let action = actions[i];
+		if (action.type === 'PullRequestEvent') {
+            const actor   = action.actor,
+                  payload = action.payload,
+                  pr      = payload.pull_request;
+            let act = payload.action;
+            if (act === 'closed' && pr.merged_at) {
+                act = 'merged';
+            }
 			n_actions.push({
-				id:        actions[i].id,
-				user:      actions[i].actor.display_login,
-				title:     actions[i].payload.pull_request.title,
-				action:    actions[i].payload.action,
-				url:       actions[i].payload.pull_request.issue_url,
-				timestamp: new Date(actions[i].payload.pull_request.updated_at)
+				id:        action.id,
+				user:      actor.display_login,
+                user_url:  actor.html_url,
+                avatar:    actor.avatar_url,
+                action:    act,
+				title:     pr.title,
+				url:       pr.html_url,
+                body:      pr.body,
+				timestamp: new Date(pr.updated_at)
 			});
 		}
 	}
@@ -256,12 +258,13 @@ const main = async function () {
 		    actions     = await fetch_actions();
 		    actions     = filter_actions(actions);
 		    actions     = strip_last(actions, last_action);
-		
 		post_actions(actions);
 
 		if (actions.length > 0)
 			save_last(actions[0].id, actions[0].timestamp);
-	} catch (e) {}
+	} catch (e) {
+        console.log('An error occurred:', e);
+    }
 };
 
 /**
