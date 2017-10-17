@@ -25,11 +25,11 @@ const USER_AGENT = 'khatch (0.0.1) http://dabpenguin.com';
 // Wikia/app config
 const REPO_ORG   = CONFIG.repo.org;
 const REPO_NAME  = CONFIG.repo.repo;
-const REPO_ID	= `${REPO_ORG}/${REPO_NAME}`;
+const REPO_ID    = `${REPO_ORG}/${REPO_NAME}`;
 const WIKIA_REPO = `https://api.github.com/repos/${REPO_ID}/events`;
 
 // Discord webhook config
-const DISCORD_WEBHOOK_ID	= CONFIG.webhook.id;
+const DISCORD_WEBHOOK_ID    = CONFIG.webhook.id;
 const DISCORD_WEBHOOK_TOKEN = CONFIG.webhook.token;
 const DISCORD_WEBHOOK_COMB  = `${DISCORD_WEBHOOK_ID}/${DISCORD_WEBHOOK_TOKEN}`;
 const DISCORD_WEBHOOK_URL   = `https://discordapp.com/api/webhooks/${DISCORD_WEBHOOK_COMB}`;
@@ -60,7 +60,7 @@ const read_last = async function () {
 
 			try {
 				let last = JSON.parse(data);
-					last.timestamp = new Date(last.timestamp);
+				    last.timestamp = new Date(last.timestamp);
 
 				resolve(last);
 			} catch (e) {
@@ -258,6 +258,7 @@ const main = async function () {
 		    actions     = await fetch_actions();
 		    actions     = filter_actions(actions);
 		    actions     = strip_last(actions, last_action);
+
 		post_actions(actions);
 
 		if (actions.length > 0)
