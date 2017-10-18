@@ -195,14 +195,16 @@ const filter_actions = function (actions) {
 
 	for (let i = 0; i < actions.length; i++) {
 		let action = actions[i];
+
 		if (action.type === 'PullRequestEvent') {
-			const actor   = action.actor,
-				  payload = action.payload,
-				  pr      = payload.pull_request;
-			let act = payload.action;
-			if (act === 'closed' && pr.merged_at) {
+			let actor   = action.actor,
+			    payload = action.payload,
+			    pr      = payload.pull_request,
+			    act     = payload.action;
+
+			if (act === 'closed' && pr.merged_at)
 				act = 'merged';
-			}
+				
 			n_actions.push({
 				id:        action.id,
 				user:      actor.display_login,
