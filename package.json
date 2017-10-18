@@ -1,6 +1,6 @@
 {
   "name": "colour-services",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A collection of services used and employed by Colouratura",
   "author": "Colouratura",
   "license": "MIT",
@@ -8,5 +8,9 @@
     "express": "^4.16.2",
     "forever": "^0.15.3",
     "request": "^2.83.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Colouratura/ColourServices.git"
   }
 }
