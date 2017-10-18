@@ -3,4 +3,5 @@ data/youtube-key.json
 data/pushover-config.json
 data/github-config.json
 data/github-cache.json
+data/pushover-cache.json
 logs/*

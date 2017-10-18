@@ -110,34 +110,33 @@ const save_last = async function (id, timestamp) {
  * @return {null}
  */
 const post_to_channel = function ({title, url, user, action, avatar, user_url, body, timestamp}) {
-	const color = DISCORD_EMBED_COLORS[action];
-	if (!color) {
-		// TODO: Support more events
-		return;
-	}
+	let color = DISCORD_EMBED_COLORS[action];
+	    title = `[${action.toUpperCase()}] ${title}`;
+	
+	if (!color) return;
 
 	request.post({
 		headers: {
-			'User-Agent': USER_AGENT,
+			'User-Agent':   USER_AGENT,
 			'Content-Type': 'application/json'
 		},
-		uri: DISCORD_WEBHOOK_URL,
+		uri:  DISCORD_WEBHOOK_URL,
 		body: {
 			embeds: [{
-				title: title,
-				url: url,
-				color: color,
-				timestamp: timestamp.toISOString(),
+				title:       title,
+				url:         url,
+				color:       color,
+				timestamp:   timestamp.toISOString(),
 				description: action === 'opened' ? body : null,
 				author: {
-					name: user,
-					url: user_url,
+					name:     user,
+					url:      user_url,
 					icon_url: avatar
 				}
 			}]
 		},
 		json: true
-	}, (err, res, body) => { });
+	}, function (err, res, body) {});
 };
 
 /**
